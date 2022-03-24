@@ -1,23 +1,46 @@
-import logo from './logo.svg';
-import './App.css';
+import axios from "axios";
+import { useEffect, useState } from "react";
+import "./App.css";
+import Author from "./Author";
+import AuthorForm from "./AuthorForm";
 
 function App() {
+  const [authors, setAuthors] = useState([]);
+
+  const loadAuthors = () => {
+    axios.get("/authorsmysql").then((res) => {
+      setAuthors(res.data.result);
+    });
+  };
+
+  useEffect(() => {
+    loadAuthors();
+  }, []);
+
+  const onClickDelete = (id) => {
+    axios
+      .delete(`/authorsmysql/${id}`)
+      .then((res) => {
+        if (res.data.error !== null) {
+          console.log(res.data.error);
+          alert("Error while deleting author");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    loadAuthors();
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <AuthorForm loadauthours={loadAuthors} />
+      <div className='authors-list'>
+        {authors.map((author) => {
+          return (
+            <Author key={author.id} author={author} delete={onClickDelete} />
+          );
+        })}
+      </div>
     </div>
   );
 }
